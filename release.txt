@@ -1,0 +1,727 @@
+#### 4.6.18 ####
+Bug 2117 - Add support for non-printable delimiter characters
+Bug 2118 - Add support for date-pattern based status files for loading
+Bug 2119 - Add support for alternate source data file text encodings
+Bug 2120 - Delimited file parsing should not require that every field be defined in the file to load successfully
+
+##### 4.6.14 ####
+Bug 2026 - Improve error message for bad numeric loading values
+Bug 2046 - Add ability to insert columns in delimited load files that shifts other column locations
+Bug 2049 - Provide more loading context information for error messages from individual field handlers
+Bug 2076 - Lookup-insert that requires additional field for lookup does not detect dependency
+Bug 2091 - Add ability to report loading progress and completion via Server Action execution in BatchManager
+
+##### 4.4.05 ####
+Bug 1966 - Add muliple "post" statement executions to load definition format
+
+##### 4.4.02 ####
+Bug 1939 - Sort source files by keys when a diff is to be applied that the files are found not to be sorted
+Bug 1959 - Add ability to filter based on lookup result
+Bug 1963 - Add logging of build version to loader startup 
+
+##### 4.4.01 ####
+The DataConnector build is incompatible with Frameworks before 4.4.01.
+Bug 1883 - Allow the specification of a cache "cap" for non-fullcache lookups
+Bug 1929 - Add diffing algorithm to handle "refresh" files where hosts can not
+offer deltas
+
+##### 2.1.15 ####
+Bug 1873 - Regular expression replacement for control file name substitution
+
+##### 2.1.14 ####
+1831 - Add Field-Level remarks
+1832 - Field-type highlighting in field list
+1833 - Properties file name override function
+1834 - Approximate Table Definition Rendering
+1856 - Disabled lookup cache causes errors
+1858 - Date handler does not expose correct JDBC type to Database
+1859 - Text Interpretation of Numeric MS Excel Columns Inconsistent 
+
+##### 2.1.13 ####
+Bug 1831 - Add Field-Level remarks
+Bug 1832 - Field-type highlighting in field list
+Bug 1833 - Properties file name override function
+Bug 1834 - Approximate Table Definition Rendering
+Bug 1835 - Template for Lookup and Lookup Insert for Refs
+Bug 1856 - Disabled lookup cache causes errors
+Bug 1858 - Date handler does not expose correct JDBC type to Database
+Bug 1859 - Text Interpretation of Numeric MS Excel Columns Inconsistent
+
+##### 2.1.12 ####
+Bug 1794 Microsoft Excel loading source
+Bug 1808 Add sheet selection to XLS/XLSX loading options
+Bug 1813 Legacy properties file parser leaves most fields non-optional 
+
+##### 2.1.11 ####
+Fixed incompatibility with recent frameworks due to obfuscation error
+
+##### 2.1.10 ####
+Bug 1779 - Delimited load offers cryptic error when no delimiter is defined
+Bug 1782 - Generated Column Name and Filter values should be trimmed of whitespace
+Bug 1798 - Lookup Cache Concurrency Issues
+
+##### 2.1.09 ####
+Bug 1752 - Loader must respect optional column setting, even on keys
+Bug 1753 - Enable use of generated column as loading regular column
+Bug 1754 - Insert-only and Update-only mode native loader support
+Bug 1755 - DB2 Native Loader Output Mode
+Bug 1756 - Support for custom "update where" clause in native loader
+Bug 1757 - Add documentation area in Editor for Annotation of Loads
+Bug 1761 - CurrencySumHandler does not respect implied decimal setting
+Bug 1762 - Header/Trailer information in load summary logging
+Bug 1763 - Add ability to specify generated file path for File/Native Loader outputs
+
+##### 2.1.08 ####
+Bug 1743 - File-generation mode for loading
+A new laoding mode is now supported that generates fixed width files from the
+source file and uses a buffer table and a stored procedure to load using the
+native loader (only DB2 currently supported).
+
+##### 2.1.07 ####
+Bug 1692 - DataConnector isKey field being loaded with null when parsing fails
+Null key fields are now detected before and insert or update and rejected with the message:
+<Table> field <Field Name> can not be null, specified as a key
+
+Bug 1739 - Change all delete-on-exit files to immediate delete after use
+Due to reports of high file handle use a change was made to avoid delete-on-exit.
+
+##### 2.1.06 ####
+Bug 1490 - Support of specifying the data source for loading/extraction
+Added configuration property "dataSource" for load configuration properties so that for a loading batch the data source can be set for each load and can be done so in a way that does not require a change to the specific load configuration, like this:
+..
+dataloader.PTRCUSTMASTER-PTRCUSTOMER.fileName=PTRCUSTMASTER.txt
+dataloader.PTRCUSTMASTER-PTRCUSTOMER.fileNameDateFormat=
+dataloader.PTRCUSTMASTER-PTRCUSTOMER.configFile=../config/loadconfigs/ptrcustmaster_ptrcustomer.xml
+dataloader.PTRCUSTMASTER-PTRCUSTOMER.dataSource=Archive
+If not specified the loading is performed, as expected, against the default data source.
+
+Bug 1677 - Allow arbitrary refresh data statement syntax
+Removed the restriction on the content of the refresh statement, now any non-deletes are treated as updates.
+
+Bug 1676 - Loading and Extraction configuration error results in misleading message
+Error message now indicates the load which is misconfigured.
+
+Bug 1665 - File key uniqueness pre-scan pass option
+Added new attribute to load configuration, "verifyfilekey", that turns on a pre-load scan that will use hashes on the data file to check the key values for uniqueness. If the file does not contain a unique key for each row to be loaded loading does not continue and messages are issued by the loader indicating the offending lines.
+This is tested up to 8 million rows of verification and the scan is fairly simple, it does not use external storage or an on-disk storage strategy. It will run out of memory against very large files. In that case splitting the target file after a unix sort would probably be appropriate.
+
+Bug 1635 - Fixed-width file data multiplier
+A new tool, com.profitera.dc.tools.FixedWidthDataMultiplier, can multiply data files for testing by using hashes to turn single lines into any number of lines replacing the test with the generated hash based on the value (padded with zero or truncated).
+This mechanism allows any value in a file to be translated consistently to the same new values in the multiplied lines.
+When executed the first argument should be the number by which to multiply (i.e. 10 for 10x file multiplication) followed by a series of properties files, each formatted as follows:
+load=load/account.xml
+source=sample/account.txt
+destination=sample/account10.txt
+multiply=CUSTOMER_ID
+key=ACCOUNT_NUMBER
+
+In this case the load, source, and destination properties each specify the load configurationxml path, the source data file, and destination data file locations.
+"multiply" specifies the field to use to multiply the lines in the source by hashing that field's values. The "key" property is used where there is a relationship to another entity to link newly generated lines with other files in the set of files. This is required so that for example in two files with one customer "1" and two child accounts "A1" and "A2". The multiplication would generate two customers, X and Y where X is the parent of new accounts Q1 and Q2 and Y is the parent of new accounts R1 and R2. This ensures that multiplication does not result in customers with 100 accounts where files are multiplied by 100.
+
+Bug 1636 - Invalid XML Configuration Error Details not Exposed
+Error catching made slightly more fine-grained so that XML loading errors shoudl be ignored but configuration parsing errors not.
+
+##### 2.1.05 ####
+- Loading connection verification was leaving a connection open, the connection is now closed immediately after opening.
+- Loading process now uses proper data source handling for loading based on server.properties instead of trying to find the file in connConfig.xml template.
+- Renamed load editor GUI to Profitera PowerApps - Data Mapping Workbench.
+- Workbench documentation incorporated into workbench itself.
+- Workbench tooltips updated.
+- Workbench updated to support opening of properties file. The loaded definition from properties will be saved as XML.
+- Updated to provide more information for file not found exception. It will now indicate what is the file that missing as well as the name of the process that hitting it.
+- Workbench updated to support adding new driver libraries into classpath "on the fly".
+
+##### 2.1.04 ####
+- load definition updated to trim the handler class name.
+- Bug 1365: updated error dialog to display more infomration.
+- Bug 1373: Fixed missing refresh query feature.
+
+##### 2.1.03 ####
+- Bug 1365: Load definition graphic editor further updated to display: 
+  - parsed data that successfully inserted into database.
+  - parsed data that update and effect the database.
+  - parsed data that failed during the insert/update process.
+- Bug 1366: Fixed DB request timeout handling that cause wrong calculation in total failed line.
+- rework field handler thread safety for better performance. 
+
+##### 2.1.02 ####
+- Custom resolver to retrieve document type definition for Ibatis from local class path.
+- Fixed field handler thread safety issue. 
+- Improved load definition editor validation processes. 
+- Added documentation support to load definition editor.  
+- Load definition editor now display editing file name at the bottom of the screen.
+- Test load from load definition editor now respect database configuration set from UI.
+- ptrdataconnector.jar are now an executable jar to call LoadParseEditor
+
+
+##### 2.1.01 ####
+- Added log4j support
+Bug 204 : Updated to check if database driver exist during instantiation. If driver not found, error message will be logged and system exit with status 1.
+Bug 181 : Updated to bring down the memory footprint by printing the filtered lines, bad lines and stack trace into disk temporary folder instead of keeping them in java.util.List. The temporary files created to store the contents will be deleted on system exit.
+Bug 1151: Graphical editor for load definition.
+Bug 1340: Updated to read data source from connConfig.xml instead of hard coded server.properties
+
+##### 2.0.9 #####
+- Removed reference to Java 5 backport of sync stuff, we run Java 5 now. Dropped util-concurrent.jar.
+- Bug 1237: CurrencySumHandler updated to handle trailing negative sign.
+- Bug 1209: Updated to cache lookup value that has no associated parameter.
+
+##### 2.0.8 #####
+Bug 1183: Enhance filteron to accept dynamic value. 
+
+##### 2.0.7 #####
+Bug 1167: Updated to check if negative sign "-" attached at the trail of the string value, eg: "000000000030000-" , it will manipulate the string to "-000000000030000" before parsing it and return as double value.
+Bug 1157: New syntax to configure handler in XMLLoadDefinationParser. eg:
+			<handler config="ddMMyyy">com.profiera.dc.handler.DefaultDateHandler</handler>
+
+
+##### 2.0.6 #####
+Bug 1086 - Header and footer printing in Extraction:
+			Configure it using tag <header> and <footer>, the values will be formatted by MessageFormat 
+			with four arguments which are:
+			{0} = extraction date
+			{1} = extraction name
+			{2} = mapping file name 
+			{3} = number of record extracted. (only available in footer) 
+Bug 1111 - Configuration for insert-only load:
+			A "mode" for a load can be specified by setting the "mode" attribute in the load tag, as follows:
+ 				<load mode="mixed" ...
+			The default value of "mixed" runs the loader as usual, inserting and updating as appropriate. 
+			"insert" runs the load as if all records are new, without checking the database based on the key specified. 
+			"update" run the load as if all rows are already in the database, executing only updates.
+Bug 1112 - Updated to specify encoding "UTF-8" on opening text files. This allow loading to load unicode character from the data flat file. 
+Bug 1124 - Update to prepend the value of selectEndKey in querytemplate.properties with a space if it's start with "as" or "from".
+Bug 1125 - Updated to indicate the field name if any exception occurred during "handling" the field value.
+Bug 1133 - Invalid start and end field values now result in an error message that clearly indicates the offending field and the incorrect location values.
+Bug 1134 - In the case of all null parameters for a lookup the insert process will now be skipped, this will result in optional values of null and failures if the lookup is required. This does not mean that if the target field is null (blank) the insert will never be executed, if it is a compound lookup all the associated fields are checked and this needs to be taken into consideration when using the equality operator is lookup SQL.
+
+##### 2.0.5 #####
+Bug 1063: NumberFormatException in CurrencyHanlder causing loading stopped.
+	CurrencyHandler assume the input field will always a valid number format. Rectified. 
+
+
+##### 2.0.4 #####
+Bug 875: Concurrent modification exception in summary
+	Added concurrency checks around logging as well as other log file writing to ensure blocking 
+	instead of concurrent modification in the circumstances described by this defect.
+	Also added new data structures to manage the log writing in order to clean up the DataLoader 
+	itself, moving some code out into smaller classes to manage specific functions.
+
+
+##### 2.0.3 #####
+Bug 821: Option to disbale the .filter file
+		 add an option to disable the produce of .filter file for the selected batch. 
+		 in config file (eg: fullload.properties) add this line to disbale it:
+		   dataloader.<BATCH_NAME>.disableFilterFile=true
+Bug 823: Out of memory error (too many files open)
+		 Updated to changes the implemention of .bad, .stacktrace and .filter output 
+		 printing. This update will ensure that each of the file will be closed properly.
+Bug 831: Null Pointer Exception while logging results
+		 Fixed the probelm of where loading exception is causing a synchonization problem between
+		 threads on the list named allErrors which, in spite of being modified by
+		 mulitple threads is not actually synchronized. The result is a null entry in
+		 the allErrors list due to a pipeline break caused by the exception that messes up 
+		 the out of order execution that is going on. Fixed this by changing the allErrors 
+		 list to a synchronised list.
+
+##### 2.0.2 #####
+Bug 765: new Handler that compare two date field and adjust one date field base
+		 on another specified date.
+
+##### 2.0.1 #####
+Bug 534: File name settings not trimmed for spaces
+File names supplied in configuration are now trimmed for leading and trailing
+whitespace.
+
+Bug 665: Loading error summary incorrect
+Loading summary counts are now accurate and line numbers are properly reported
+using 1-based indexing (formerly 0-based).
+
+Bug 708: Filtered records from loading showing in logs
+Filtered records will showing in log file which logged at level info.
+
+Bug 709: Files for filtered records
+Add support to push the filtered records into a file during the loading process . 
+The output file will have the extension of ".filter" and store in the same directory with
+.bad file and .stacktrace file. If there is no filtered record found during the loading 
+process, the output file will not be generated.
+
+##### 2.0.0 #####
+-Bug 600: Add caching for checking if records exist during load
+Based on assigned key fields for the load a cache is constructed to acknowledge
+the presence of records already in the database. This will not work against
+loads that use custom where clauses but should be effective against loads with
+keys composed of lookups
+
+-Bug 599: Add pre-stocked cache option for lookups
+Added fullcache tag to XML load configs to allow for the definition of a fully
+cached lookup, the user-defined query must return all the columns used in the
+order of the original lookup query, but with the lookup value as the first
+column.
+
+##### 1.9.4 #####
+-Bug 549: Extraction lookup chaining not functioning properly
+Undefined fields now cause the message "Lookup query for 'Y' references undefined field X" to be issued when failing.
+Lookups were sometimes failing because the lookup query indexes was wrong, this has been fixed.
+
+##### 1.9.3 #####
+- Bug 547: Loading can hang on invalid thread expiration
+Added synchronization to handle problem with a double-release of semaphores 
+that can occur if a thread is invalidated by a timeout and then immediately 
+(practically in parallel) returns from the database. This change prevents 
+any possible occurrence of double-release.
+
+- Bug 546: CurrencyHandler does not return negatives properly values over -1
+The currency handler was relying on the whole-dollar part of the number to retain 
+the positive/negative value of the number when applying the implied decimals, e.g.
+-101 -> -1 + 0.01 -> -1.01
+This doesn't work for this case:
+-001 -> 0 + 0.01 -> 0.01
+This as been fixed by retaining a positive/negative flag after the initial whole-value 
+parse before applying the implied decimal places.
+
+- Bug 521: Loading hangs on locked look-up select
+When a thread that is performing a lookup hangs while requesting data from db, 
+the mutex that the thread is holding against the lookup method is not released.  
+When the thread monitor flags the thread invalid the mutex remains held by the 
+rogue thread.  This forces other threads that are perfectly healthy to wait 
+indefinitely for the mutex to be released which in turn causes the thread monitor 
+to think that these threads are also rogue and flag them as invalid as well 
+resulting in all the threads not being able to process anything.
+
+This problem is fixed by using binary semaphores instead of using object locking 
+(mutex) for syncronizing thread access to the lookup method.  A binary semaphore 
+permits only one thread to access the lookup method at a time and when the thread 
+becomes rogue and thread monitor flags the thread invalid, the thread return its 
+permit back to the semaphore which now passes the permit to the next thread in queue.
+
+- Bug 513: Rogue thread causing data loader not to terminate after loading completion
+After the implementation of db independent thread time out feature (#360),
+instead of hanging data loader continues to process other threads while
+ignoring the rogue threads which is waiting for db response.  Once the good
+threads complete, data loader prints summary and considers loading process
+complete.  However, because there are rogue threads still hanging data loader
+process itself do not terminate. This is a problem because there could be other
+programs waiting for a completion response from data loader in order to
+proceed/start.
+
+Fixed by including a System.exit at the end of data loader processing which
+will force terminate the process and return a status code of 0
+
+##### 1.9.2 #####
+- Bug 509: Stacktrace error in extractor when using 
+  com.profitera.dc.handler.StripPrefixAndAppendPhoneNumberHandler
+  Null condition not handled property, instead of treating it as a 
+  string the null should be passed-through, resulting in a null.
+  
+##### 1.9.1 #####
+- Bug 501: Extended phone number handler that adds prefix
+  Implemented as an extension to StripPrefixPhoneNumberHandler that 
+  interprets its first argument as a require prefix instead of a prefix 
+  to remove.
+  
+- Bug #496: DataExtractor support for integer lookup type
+  Suprisingly, data extractor supports lookup type date and long, but not
+  integer. So when somebody uses integerhandler and uses lookup type int, 
+  it defaults to string. This needs to be fixed and lookup type int needs 
+  to be supported.
+  
+- Added the support for int lookup type.
+  
+- Add method configureWriter that pass properties file.
+
+- Adding utility to check the number of usage of parseDefinition method 
+  (restricted to 1 calling for 1 object).
+  
+- Updated for recordSize.
+
+- Change FileReader to FileInputStream.
+
+- Made some changes to able read config in XML format.
+
+- Updates to accomodate the reading config files in XML mode.
+
+- Class that read config in xml format.
+
+- Some dumb space cleanup.
+
+##### 1.9.0 #####
+- Bug 431:
+  Data loader was showing wrong number of records processed and number of
+  records processed per second, fixed.
+
+- RecordDispenser message:
+  The lines dispensed was always using 0 as the index for the first records,
+  changed so that 1 is used as index for first record, its more human friendly
+  that way.
+
+
+##### 1.8.0 #####
+Bug 360 - Database independent timeout for commits for database related operations
+
+Implemented a custom thread for data loader processing and a monitor to monitor
+the threads.  Based on 2 parameters set by user, timeout and frequency, the
+monitor will on the specified frequency check all the threads that are running
+to see if any of it has been waiting for database response for longer than time
+specified in timeout.  If it has been waiting, the monitor sets the thread to
+be invalid and dumps the stacktrace and bad records into their respective
+files.  Loading continues until the whole loading finishes. If the invalid
+thread comes back alive (database responded) regardless whether data loading
+has finished or not, if data loader instance is running, and error message with
+InvalidExecutionThreadException is thrown.
+
+This timeout feature is independant of the sql map/refresh data timeout
+feature, although both are designed to do the same thing, the former depends on
+jdbc driver and the latter depends on ptr's code.
+
+To set the timeout and frequency, it can either be the 9 and 10 argument in the
+command line (8th being batch/serial, which must be provided in order to
+provide timeout and frequency as 9th and 10th), where if frequency (10th
+argument) is absent it is defaulted to the timeout value, and if timeout (9th
+argument is absent) the timeout feature is disabled. Example below:
+
+java -classpath $CLASSPATH com.profitera.dc.DataLoader <properties file> <data
+file> <threads> <commit> <db user> <db password> <log dir> <batch true/false> x
+y
+
+The two can also be set in load configuration properties file when data loader
+is run in the '-c' mode.  The keywords to be set are:
+
+dataloader.timeout=x
+dataloader.frequency=y
+
+x and y are both in seconds unit.
+
+
+##### 1.7.0 #####
+- Bugzilla 321:
+  Introduced a new configuration parameter called "refreshDataQueryTimeout". This allows the customizer to specify the number of seconds that a refresh data query should wait before it considers itself failed to execute and throw an exception.
+  The syntax is:
+  For properties configuration - 
+  refreshDataQueryTimeout=x
+  For xml configuration ? 
+  <refreshdata key="true" timeout="x">the refresh sql statement here</refreshdata>
+  Where x is a long number representing the number of seconds to wait. If this value is not set or set to -1, refresh data query timeout will be based on the data connector global statement timeout value. If this value is set to 0, it means when indefinitely.
+
+
+##### 1.6.0 #####
+- Cleanup, removed unecessary 
+- Updated with v1.5 information
+- Added usage message
+- Exception when lookup definition is wrong
+- Fixed bug 209, addendum: Undefined field used in lookup query
+- Fixed bug 209: Lookup causes strange error message
+- No more missing stacktrace from stacktrace file, fixed it.  Unpredictable behaviour encountered when using Throwable.printStackTrace(PrintWriter), changed to use Throwable.printStackTrace(PrintStream)
+- Added the stacktrace for transaction exceptions to be put in stacktrace file
+- Saxon version is 8.9.
+- Added saxon8-dom.jar so that xml loading failures would stop, either both or neither of these jars should be in the classpath for a given implementation - prefer niether unless you need the dc XML loading features.
+- Bug 43: Self-Documenting Hander Implementations
+- Handlers now expose behaviours docs as well as cnfig documentation.
+- Made changes for the moving of irecorddispenser interface
+- Moved these 2 guys to com.profitera.util package
+- Fix for bug 11, Connection failure detection
+- Added log summaries for pcbatch
+- Removed all redundant jar libraries from cvs, by exporting jar entries from projects these are not requred and we can be certain of which version of each library is actually going to production.
+- Updated to not load off the classpath
+- The -c option was not reading the proper configurations. it was off and screwed up. fixed and tested, unit of course.
+- Added seperate summary for filter ons
+- Added Filter ons are no more logged with the rest
+- Fixed Wrong filter logging
+- Fixed Innacurate result summaries
+- Fixed Stack overflow error handling
+- Fixed Database connection error handling
+- This is the details of the structure of XML elements and attributes
+- Adding a few lines and changes from ParseDefintionParser type to XMLParseDefintionParser to accomodate the config file in XML format.
+- No input format changes required.
+- A program which read config file in XML format.
+- It behaves the same as LoadDefinitionParser.
+- If the file parsed in is not in XML format, then it will try to parse it will direct the file to be parsed with LoadDefinitionParser.
+- Contains all the keywords of XML format config file
+- Updates to accomodate the reading config files in XML mode.
+- Also adding utility to check the number of usage of parseDefinition method (restricted to 1 calling for 1 object)
+- A little tool to convert a config file in properties form to xml form
+
+##### 1.5.0 #####
+- Added feature to enable/disable caching.
+- Added a new hashtotal program.
+- Added new ematching program, compares 2 fixed-width text files based on specified conditions and produces a text report.
+- Added support in handlers for extracted numeric positive value sign.
+- Added support for multiple merge fields handler. This is dangerous as using the mergefield handler with an argument of another mergefieldhandler field can result in unpredictable outcome
+- MergeFieldsHandler processing is now pushed to the end after all other fields are processed. Also, added constraint where only of merge field for one load, using multiple will randomly choose one.
+- RunningNumberHandler now allows the length/width of the running number to be specified as an integer in handlerConfig
+- Merge field is reverse capable now<br>
+- Added new LineBreakTrimHandler, useful when a text field from database has line breaks in between
+- Changed the line break to be platform independant instead of /n.  Also moved the isExternal check to be after handler processing so that even external fields are available to handlers
+- Added support of merge fields handler for data extractor. Instead of reversing, it does the same thing as the normal method.
+- Added support for the handlers to be able to take in the queried record.
+- Data loader has been added with a new feature which allows it to parse and process output of an xquery against an xml file. This feature can be enabled by specifying a property called xQuery followed by the actual xquery.This feature required the saxon libraries, included in a jar called saxon8.jar.
+- Default date handler now has the capability of determining a particular date which is being reversed is expected to be string or numeric, and based on that, pad it with zeroes or spaces properly.
+- Removed duplicate method getStartTimeForBatch which was not used
+- Fixed bug where reversing the value of a negative long results in double '-' sign.<br>
+- Introduced the ability for a lookup insert key to result in a varchar data type</p></td>
+- Added feature to support batch/serial loading modes
+- Included features for fetch and skip in Data Extractor. Threading and commit is removed, instead replaced with fetch and skip. The command line options remain, except that the parameter for thread and commit is now fetch and skip respectively.
+- The use of currencysumhandler was causing truncation of 1 decimal point for numbers with zero cents value. Example: 123.00 comes out as 12.30, this is because when currencysumhandler sums all the cents, it returns in the format of 0 for 00. Hence, when string concatenation is done to join dollar value and cent  value, the string becomes 1230 instead of 12300. This in turn caused currencyhandler to move 2 decimal points from 1230, ending up with the value of 12.30.Fixed.
+- Enabled line padding for delimited files
+
+##### 1.4.0 #####
+- Support for lookup values of type 'date'
+- Support for JDBC type TIME and java.sql.Time loading
+- XML and Delimited file extraction
+
+##### 1.3.0 #####
+- Included ability for data loader to process xml files.
+- loadType value for xml is 'xml'
+- With this, data loader supports 3 loadType values, that are 'fixed' for fixed width, 'del' for delimited and 'xml' for xml files.
+
+##### 1.2.0 #####
+- Removed failed transaction recovery code that may execute inconsistent units of work when postInsertInsertion and postInsertUpdate is used.
+
+##### 1.1.0 #####
+- Ability to process delimited files
+- New handler (LeftTrimHandler) for removing specified character at the left side of a string
+- Added additional logging when insert/update statements executed
+- Depends on new ptrutil.jar
+
+##### FROM 1.0.0 #####
+- First DataConnector version to become independent
+
+##### 2.0.0 #####
+-Bug 600: Add caching for checking if records exist during load
+Based on assigned key fields for the load a cache is constructed to acknowledge
+the presence of records already in the database. This will not work against
+loads that use custom where clauses but should be effective against loads with
+keys composed of lookups
+
+-Bug 599: Add pre-stocked cache option for lookups
+Added fullcache tag to XML load configs to allow for the definition of a fully
+cached lookup, the user-defined query must return all the columns used in the
+order of the original lookup query, but with the lookup value as the first
+column.
+
+##### 1.9.4 #####
+-Bug 549: Extraction lookup chaining not functioning properly
+Undefined fields now cause the message "Lookup query for 'Y' references undefined field X" to be issued when failing.
+Lookups were sometimes failing because the lookup query indexes was wrong, this has been fixed.
+
+##### 1.9.3 #####
+- Bug 547: Loading can hang on invalid thread expiration
+Added synchronization to handle problem with a double-release of semaphores 
+that can occur if a thread is invalidated by a timeout and then immediately 
+(practically in parallel) returns from the database. This change prevents 
+any possible occurrence of double-release.
+
+- Bug 546: CurrencyHandler does not return negatives properly values over -1
+The currency handler was relying on the whole-dollar part of the number to retain 
+the positive/negative value of the number when applying the implied decimals, e.g.
+-101 -> -1 + 0.01 -> -1.01
+This doesn't work for this case:
+-001 -> 0 + 0.01 -> 0.01
+This as been fixed by retaining a positive/negative flag after the initial whole-value 
+parse before applying the implied decimal places.
+
+- Bug 521: Loading hangs on locked look-up select
+When a thread that is performing a lookup hangs while requesting data from db, 
+the mutex that the thread is holding against the lookup method is not released.  
+When the thread monitor flags the thread invalid the mutex remains held by the 
+rogue thread.  This forces other threads that are perfectly healthy to wait 
+indefinitely for the mutex to be released which in turn causes the thread monitor 
+to think that these threads are also rogue and flag them as invalid as well 
+resulting in all the threads not being able to process anything.
+
+This problem is fixed by using binary semaphores instead of using object locking 
+(mutex) for syncronizing thread access to the lookup method.  A binary semaphore 
+permits only one thread to access the lookup method at a time and when the thread 
+becomes rogue and thread monitor flags the thread invalid, the thread return its 
+permit back to the semaphore which now passes the permit to the next thread in queue.
+
+- Bug 513: Rogue thread causing data loader not to terminate after loading completion
+After the implementation of db independent thread time out feature (#360),
+instead of hanging data loader continues to process other threads while
+ignoring the rogue threads which is waiting for db response.  Once the good
+threads complete, data loader prints summary and considers loading process
+complete.  However, because there are rogue threads still hanging data loader
+process itself do not terminate. This is a problem because there could be other
+programs waiting for a completion response from data loader in order to
+proceed/start.
+
+Fixed by including a System.exit at the end of data loader processing which
+will force terminate the process and return a status code of 0
+
+##### 1.9.2 #####
+- Bug 509: Stacktrace error in extractor when using 
+  com.profitera.dc.handler.StripPrefixAndAppendPhoneNumberHandler
+  Null condition not handled property, instead of treating it as a 
+  string the null should be passed-through, resulting in a null.
+  
+##### 1.9.1 #####
+- Bug 501: Extended phone number handler that adds prefix
+  Implemented as an extension to StripPrefixPhoneNumberHandler that 
+  interprets its first argument as a require prefix instead of a prefix 
+  to remove.
+  
+- Bug #496: DataExtractor support for integer lookup type
+  Suprisingly, data extractor supports lookup type date and long, but not
+  integer. So when somebody uses integerhandler and uses lookup type int, 
+  it defaults to string. This needs to be fixed and lookup type int needs 
+  to be supported.
+  
+- Added the support for int lookup type.
+  
+- Add method configureWriter that pass properties file.
+
+- Adding utility to check the number of usage of parseDefinition method 
+  (restricted to 1 calling for 1 object).
+  
+- Updated for recordSize.
+
+- Change FileReader to FileInputStream.
+
+- Made some changes to able read config in XML format.
+
+- Updates to accomodate the reading config files in XML mode.
+
+- Class that read config in xml format.
+
+- Some dumb space cleanup.
+
+##### 1.9.0 #####
+- Bug 431:
+  Data loader was showing wrong number of records processed and number of
+  records processed per second, fixed.
+
+- RecordDispenser message:
+  The lines dispensed was always using 0 as the index for the first records,
+  changed so that 1 is used as index for first record, its more human friendly
+  that way.
+
+
+##### 1.8.0 #####
+Bug 360 - Database independent timeout for commits for database related operations
+
+Implemented a custom thread for data loader processing and a monitor to monitor
+the threads.  Based on 2 parameters set by user, timeout and frequency, the
+monitor will on the specified frequency check all the threads that are running
+to see if any of it has been waiting for database response for longer than time
+specified in timeout.  If it has been waiting, the monitor sets the thread to
+be invalid and dumps the stacktrace and bad records into their respective
+files.  Loading continues until the whole loading finishes. If the invalid
+thread comes back alive (database responded) regardless whether data loading
+has finished or not, if data loader instance is running, and error message with
+InvalidExecutionThreadException is thrown.
+
+This timeout feature is independant of the sql map/refresh data timeout
+feature, although both are designed to do the same thing, the former depends on
+jdbc driver and the latter depends on ptr's code.
+
+To set the timeout and frequency, it can either be the 9 and 10 argument in the
+command line (8th being batch/serial, which must be provided in order to
+provide timeout and frequency as 9th and 10th), where if frequency (10th
+argument) is absent it is defaulted to the timeout value, and if timeout (9th
+argument is absent) the timeout feature is disabled. Example below:
+
+java -classpath $CLASSPATH com.profitera.dc.DataLoader <properties file> <data
+file> <threads> <commit> <db user> <db password> <log dir> <batch true/false> x
+y
+
+The two can also be set in load configuration properties file when data loader
+is run in the '-c' mode.  The keywords to be set are:
+
+dataloader.timeout=x
+dataloader.frequency=y
+
+x and y are both in seconds unit.
+
+
+##### 1.7.0 #####
+- Bugzilla 321:
+  Introduced a new configuration parameter called "refreshDataQueryTimeout". This allows the customizer to specify the number of seconds that a refresh data query should wait before it considers itself failed to execute and throw an exception.
+  The syntax is:
+  For properties configuration - 
+  refreshDataQueryTimeout=x
+  For xml configuration ��� 
+  <refreshdata key="true" timeout="x">the refresh sql statement here</refreshdata>
+  Where x is a long number representing the number of seconds to wait. If this value is not set or set to -1, refresh data query timeout will be based on the data connector global statement timeout value. If this value is set to 0, it means when indefinitely.
+
+
+##### 1.6.0 #####
+- Cleanup, removed unecessary 
+- Updated with v1.5 information
+- Added usage message
+- Exception when lookup definition is wrong
+- Fixed bug 209, addendum: Undefined field used in lookup query
+- Fixed bug 209: Lookup causes strange error message
+- No more missing stacktrace from stacktrace file, fixed it.  Unpredictable behaviour encountered when using Throwable.printStackTrace(PrintWriter), changed to use Throwable.printStackTrace(PrintStream)
+- Added the stacktrace for transaction exceptions to be put in stacktrace file
+- Saxon version is 8.9.
+- Added saxon8-dom.jar so that xml loading failures would stop, either both or neither of these jars should be in the classpath for a given implementation - prefer niether unless you need the dc XML loading features.
+- Bug 43: Self-Documenting Hander Implementations
+- Handlers now expose behaviours docs as well as cnfig documentation.
+- Made changes for the moving of irecorddispenser interface
+- Moved these 2 guys to com.profitera.util package
+- Fix for bug 11, Connection failure detection
+- Added log summaries for pcbatch
+- Removed all redundant jar libraries from cvs, by exporting jar entries from projects these are not requred and we can be certain of which version of each library is actually going to production.
+- Updated to not load off the classpath
+- The -c option was not reading the proper configurations. it was off and screwed up. fixed and tested, unit of course.
+- Added seperate summary for filter ons
+- Added Filter ons are no more logged with the rest
+- Fixed Wrong filter logging
+- Fixed Innacurate result summaries
+- Fixed Stack overflow error handling
+- Fixed Database connection error handling
+- This is the details of the structure of XML elements and attributes
+- Adding a few lines and changes from ParseDefintionParser type to XMLParseDefintionParser to accomodate the config file in XML format.
+- No input format changes required.
+- A program which read config file in XML format.
+- It behaves the same as LoadDefinitionParser.
+- If the file parsed in is not in XML format, then it will try to parse it will direct the file to be parsed with LoadDefinitionParser.
+- Contains all the keywords of XML format config file
+- Updates to accomodate the reading config files in XML mode.
+- Also adding utility to check the number of usage of parseDefinition method (restricted to 1 calling for 1 object)
+- A little tool to convert a config file in properties form to xml form
+
+##### 1.5.0 #####
+- Added feature to enable/disable caching.
+- Added a new hashtotal program.
+- Added new ematching program, compares 2 fixed-width text files based on specified conditions and produces a text report.
+- Added support in handlers for extracted numeric positive value sign.
+- Added support for multiple merge fields handler. This is dangerous as using the mergefield handler with an argument of another mergefieldhandler field can result in unpredictable outcome
+- MergeFieldsHandler processing is now pushed to the end after all other fields are processed. Also, added constraint where only of merge field for one load, using multiple will randomly choose one.
+- RunningNumberHandler now allows the length/width of the running number to be specified as an integer in handlerConfig
+- Merge field is reverse capable now<br>
+- Added new LineBreakTrimHandler, useful when a text field from database has line breaks in between
+- Changed the line break to be platform independant instead of /n.  Also moved the isExternal check to be after handler processing so that even external fields are available to handlers
+- Added support of merge fields handler for data extractor. Instead of reversing, it does the same thing as the normal method.
+- Added support for the handlers to be able to take in the queried record.
+- Data loader has been added with a new feature which allows it to parse and process output of an xquery against an xml file. This feature can be enabled by specifying a property called xQuery followed by the actual xquery.This feature required the saxon libraries, included in a jar called saxon8.jar.
+- Default date handler now has the capability of determining a particular date which is being reversed is expected to be string or numeric, and based on that, pad it with zeroes or spaces properly.
+- Removed duplicate method getStartTimeForBatch which was not used
+- Fixed bug where reversing the value of a negative long results in double '-' sign.<br>
+- Introduced the ability for a lookup insert key to result in a varchar data type</p></td>
+- Added feature to support batch/serial loading modes
+- Included features for fetch and skip in Data Extractor. Threading and commit is removed, instead replaced with fetch and skip. The command line options remain, except that the parameter for thread and commit is now fetch and skip respectively.
+- The use of currencysumhandler was causing truncation of 1 decimal point for numbers with zero cents value. Example: 123.00 comes out as 12.30, this is because when currencysumhandler sums all the cents, it returns in the format of 0 for 00. Hence, when string concatenation is done to join dollar value and cent  value, the string becomes 1230 instead of 12300. This in turn caused currencyhandler to move 2 decimal points from 1230, ending up with the value of 12.30.Fixed.
+- Enabled line padding for delimited files
+
+##### 1.4.0 #####
+- Support for lookup values of type 'date'
+- Support for JDBC type TIME and java.sql.Time loading
+- XML and Delimited file extraction
+
+##### 1.3.0 #####
+- Included ability for data loader to process xml files.
+- loadType value for xml is 'xml'
+- With this, data loader supports 3 loadType values, that are 'fixed' for fixed width, 'del' for delimited and 'xml' for xml files.
+
+##### 1.2.0 #####
+- Removed failed transaction recovery code that may execute inconsistent units of work when postInsertInsertion and postInsertUpdate is used.
+
+##### 1.1.0 #####
+- Ability to process delimited files
+- New handler (LeftTrimHandler) for removing specified character at the left side of a string
+- Added additional logging when insert/update statements executed
+- Depends on new ptrutil.jar
+
+##### FROM 1.0.0 #####
+- First DataConnector version to become independent

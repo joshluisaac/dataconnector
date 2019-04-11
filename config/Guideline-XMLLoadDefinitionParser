@@ -1,0 +1,127 @@
+<load 	type = ; delimiter = ; padline = ;>
+	<table>
+		some-value
+	</table
+
+	<generatedkey>
+		some-value
+	</generatedkey>
+
+	<generatedkeyseqname/>
+		some-value
+	</generatedkeyseqname>
+
+	<refreshdata key = ; >
+		some-value
+	</refreshdata>
+
+	<header>
+		<value>
+			some-value
+		</value>
+		<value>
+			some-value
+		</value>
+		   .
+                   .
+	</header>
+
+	<trailer>
+		<value>
+			some-value
+		</value>
+		<value>
+			some-value
+		</value>
+		   .
+                   .
+	</trailer>
+
+	<recordindicatortag>
+		some-value
+	</recordindicatortag>
+
+	<xquery>
+		some-value
+	</xquery>
+
+	<querywhere>
+		<select>
+			some-value
+		</select>
+		<update>
+			some-value
+		</update>
+	</querywhere>
+
+	<post>
+		<insertupdate>
+			some-value
+		</insertupdate>
+		<insertinsertion>
+			some-value
+		</insertinsertion>
+		<updateupdate>
+			some-value
+		</updateupdate>
+		<updateinsertion>
+			some-value
+		</updateinsertion>
+	</post>
+
+
+	<field iskey = ; isoptional = ; isexternal = ; cache = ;>
+		<name>
+			some-value
+		</name>
+
+		<default>
+			some-value
+		</default>
+
+		<location start = ; end = ;/>
+		<handler>
+			some-value
+
+			<config>
+				some-value
+			</config>
+		</handler>
+		
+		<lookup type = ;>
+			<query>
+				some-value
+			</query>
+			<insert>
+				some-value
+			</insert>
+			<insertkey>
+				some-value
+			</insertkey>
+		</lookup>
+
+		<filteron>
+			<value>
+				some-value
+			</value>
+			<value>
+				some-value
+			</value>
+			   .
+                           .
+		</filteron>
+
+		<nulldefinition>
+			<value>
+				some-value
+			</value>
+			<value>
+				some-value
+			</value>
+			   .
+                           .
+		</nulldefinition>
+	</field>
+
+
+</load>
